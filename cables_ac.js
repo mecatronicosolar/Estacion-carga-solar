@@ -23,6 +23,7 @@
     prototypeCurrentLimit: 10,
     // Calibres AWG 60 °C Cu: valores nominales empleados como referencia.
     sizes: Object.freeze([
+      { awg: '14', sectionMm2: 2.08, ampacityA: 15 },
       { awg: '12', sectionMm2: 3.31, ampacityA: 20 },
       { awg: '10', sectionMm2: 5.26, ampacityA: 30 },
       { awg: '8', sectionMm2: 8.37, ampacityA: 40 },
@@ -38,7 +39,7 @@
     ])
   });
 
-  function calculateAcCable(distanceM, powerW, voltageV = CONFIG.defaultVoltage) {
+  function calculateAcCable(distanceM, powerW, voltageV = CONFIG.defaultVoltage, residential = true) {
     const distance = Number(distanceM);
     const power = Number(powerW);
     const voltage = Number(voltageV);
@@ -57,7 +58,7 @@
 
     const currentA = power / (voltage * CONFIG.powerFactor);
     const designCurrentA = currentA * CONFIG.continuousLoadFactor;
-    const nominalCircuitA = Math.max(designCurrentA, CONFIG.minCircuitAmps);
+    const nominalCircuitA = Math.max(designCurrentA, residential ? CONFIG.minCircuitAmps : 0);
     const maxDropV = voltage * CONFIG.maxDropPercent / 100;
     const minimumSectionDropMm2 =
       2 * CONFIG.copperResistivityOhmMm2PerM * distance * currentA / maxDropV;
@@ -78,8 +79,8 @@
     const dropV = 2 * CONFIG.copperResistivityOhmMm2PerM * distance * currentA / cable.sectionMm2;
     const dropPercent = 100 * dropV / voltage;
     const mechanism = cable.awg === byAmpacity.awg && cable.awg === byDrop.awg
-      ? 'Ambos criterios'
-      : cable.awg === byAmpacity.awg ? 'Capacidad de corriente' : 'Caída de tensión';
+      ? 'Ampacidad y caída de tensión'
+      : cable.awg === byAmpacity.awg ? 'Ampacidad' : 'Caída de tensión';
 
     return {
       ok: true,
@@ -101,7 +102,7 @@
       controllingCriterion: mechanism,
       overPrototypeLimit: currentA > CONFIG.prototypeCurrentLimit,
       outsidePrototypeVoltage: voltage !== CONFIG.defaultVoltage,
-      assumptions: `Circuito AC monofásico ${voltage <= 120 ? 'L-N' : 'L1-L2'}, cobre; FP=1; dos conductores para caída de tensión; ampacidad Cu a 60 °C sin ajustes; carga continua ×1,25; mínimo 20 A en escenario domiciliario/similar.`
+      assumptions: `Circuito AC monofásico ${voltage <= 120 ? 'L-N' : 'L1-L2'}, cobre; FP=1; ida y retorno; ampacidad Cu a 60 °C, ambiente 30 °C, hasta tres portadores sin ajustes; carga continua ×1,25; ${residential ? 'mínimo 20 A domiciliario/similar' : 'estación dedicada sin mínimo domiciliario'}.`
     };
   }
 
@@ -116,6 +117,7 @@
   const powerEl = document.getElementById('P_dispositivo');
   const distanceEl = document.getElementById('distancia_ac');
   const voltageEl = document.getElementById('tension_ac');
+  const environmentEl = document.getElementById('entorno_ac');
   const connectionEl = document.getElementById('configuracion_ac');
   const out = document.getElementById('resultado-4');
   const btn = document.getElementById('btn-calcular-ac');
@@ -163,6 +165,8 @@
         <span>${fmt(res.wire.sectionMm2)} mm² · cobre</span>
       </div>
       <div class="datos-cable-grid">
+        <div><small>Potencia de carga</small><strong>${fmt(res.powerW)} W</strong></div>
+        <div><small>Distancia de ida</small><strong>${fmt(res.distanceM)} m</strong></div>
         <div><small>Tensión y conexión</small><strong>${res.voltageV} V · ${res.connection}</strong></div>
         <div><small>Corriente de carga</small><strong>${fmt(res.currentA)} A</strong></div>
         <div><small>Corriente de diseño (×1,25)</small><strong>${fmt(res.designCurrentA)} A</strong></div>
@@ -174,6 +178,7 @@
         <div><small>Condición determinante</small><strong>${res.controllingCriterion}</strong></div>
       </div>
       ${warnings}
+      <p class="nota-ac"><strong>Supuestos aplicados:</strong> ${res.assumptions}</p>
       <p class="nota-ac"><strong>Cómo se obtuvo:</strong> I = P / ${res.voltageV}; I<sub>diseño</sub> = 1,25·I; S<sub>caída</sub> = 2·ρ·L·I / ${fmt(res.voltageDropLimitV)} V, con ρ = 0,021 Ω·mm²/m. Se selecciona el primer AWG que cumpla caída ≤ 3 % y ampacidad ≥ ${fmt(res.minimumCircuitAmpacityA)} A.</p>
       <p class="nota-ac"><strong>Verificación pendiente:</strong> el mínimo de 20 A corresponde a circuitos domiciliarios o similares para carga de VE según RETIE 2026, art. 3.17.7(b). No se incluyen correcciones de temperatura, agrupamiento, instalación o fabricante, ni dimensionamiento del conductor de protección (PE), del interruptor automático ni del diferencial. Para 220/240 V la configuración mostrada usa L1-L2, no fase-neutro; el PE sigue siendo obligatorio según corresponda. El calibre debe validarse con la NTC 2050, el RETIE aplicable, las terminales y la ficha del equipo.</p>
       <div class="acciones-cable"><button type="button" class="btn-copiar-ac" id="copiar-ac">Copiar resultados</button><span id="mensaje-copiar-ac" aria-live="polite"></span></div>
@@ -197,11 +202,12 @@
     if (d === '') return markError('Ingresa la distancia de ida entre el tablero/inversor y el EVSE.');
     const p = powerEl.value.trim();
     if (p === '') return markError('Ingresa primero la potencia del vehículo en el Paso 1.1.');
-    const res = calculateAcCable(Number(d), Number(p), Number(voltageEl.value));
+    const res = calculateAcCable(Number(d), Number(p), Number(voltageEl.value), environmentEl.value === 'domiciliario');
     if (!res.ok) return markError(res.error);
     showResult(res);
   }
   btn.addEventListener('click', run);
+  environmentEl.addEventListener('change', () => { if (out.classList.contains('visible')) run(); });
   powerEl.addEventListener('input', () => {
     showPowerSource();
     if (out.classList.contains('visible')) run();
@@ -222,6 +228,7 @@
   if (resetButton) resetButton.addEventListener('click', () => {
     distanceEl.value = '';
     voltageEl.value = String(CONFIG.defaultVoltage);
+    environmentEl.value = 'domiciliario';
     out.className = 'resultado resultado-ac';
     out.replaceChildren();
     showPowerSource();
