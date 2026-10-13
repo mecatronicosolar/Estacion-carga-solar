@@ -1,44 +1,231 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Sistema de gestión y supervisión de una estación de carga solar.">
-  <title>Estación Solar Inteligente</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dimensionador Solar</title>
+    <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="index.html" aria-label="Inicio"><span class="brand-mark">☀</span><span>Estación Solar</span></a>
-    <button class="menu-button" aria-expanded="false" aria-controls="main-nav">Menú</button>
-    <nav id="main-nav" class="nav" aria-label="Navegación principal">
-      <a class="active" href="index.html">Inicio</a><a href="dimensionamiento.html">Dimensionamiento</a><a href="monitoreo.html">Monitoreo</a>
-    </nav>
-  </header>
-  <main>
-    <section class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">Trabajo de grado · Fase de simulación</p>
-        <h1>Energía solar convertida en carga, datos y decisiones.</h1>
-        <p>Plataforma web para dimensionar y supervisar un punto de carga alimentado por generación fotovoltaica y almacenamiento en batería.</p>
-        <div class="actions"><a class="button primary" href="monitoreo.html">Ver monitoreo</a><a class="button secondary" href="dimensionamiento.html">Dimensionar sistema</a></div>
-      </div>
-      <div class="energy-visual" aria-label="Flujo de energía simulado">
-        <div class="energy-node solar"><span>Generación FV</span><strong>520 W</strong></div><span class="flow">→</span>
-        <div class="energy-node battery"><span>Batería</span><strong>78%</strong></div><span class="flow">→</span>
-        <div class="energy-node charge"><span>Punto de carga</span><strong>690 W</strong></div>
-      </div>
-    </section>
-    <section class="section">
-      <p class="eyebrow">Una sola plataforma</p><h2>Del diseño a la supervisión</h2>
-      <div class="feature-grid">
-        <article class="feature"><span class="feature-number">01</span><h3>Dimensionar</h3><p>Estimar energía diaria, potencia fotovoltaica y capacidad de batería para un escenario de operación.</p><a href="dimensionamiento.html">Abrir calculadora →</a></article>
-        <article class="feature"><span class="feature-number">02</span><h3>Supervisar</h3><p>Consultar generación, batería, sesión de carga, estados y alarmas desde ThingsBoard.</p><a href="monitoreo.html">Abrir tablero →</a></article>
-        <article class="feature"><span class="feature-number">03</span><h3>Integrar</h3><p>Preparado para incorporar Raspberry Pi, MQTT con HiveMQ y persistencia adicional mediante un backend seguro.</p><span class="muted">Próxima fase</span></article>
-      </div>
-    </section>
-    <section class="section architecture"><div><p class="eyebrow">Arquitectura prevista</p><h2>Datos separados de la interfaz</h2><p>Las credenciales y tokens permanecerán en los dispositivos o en el backend. Nunca se publicarán en GitHub Pages.</p></div><div class="pipeline"><span>Raspberry Pi</span><b>MQTT</b><span>HiveMQ</span><b>→</b><span>ThingsBoard</span><b>→</b><span>Web</span></div></section>
-  </main>
-  <footer><span>Estación Solar Inteligente</span><span>Prototipo académico · Datos simulados</span></footer>
-  <script src="app.js"></script>
-</body></html>
+    <div class="contenedor-principal">
+        <!-- ENCABEZADO -->
+        <header class="encabezado">
+            <h1>Dimensionador Solar</h1>
+            <p class="subtitulo">Metodología de dimensionamiento de una estación de carga solar</p>
+        </header>
+
+        <!-- INTRODUCCIÓN GENERAL -->
+        <section class="seccion introduccion">
+            <h2>¿De qué trata esta herramienta?</h2>
+            <p>
+                Este dimensionador te ayuda a calcular los componentes principales de una <strong>estación de carga solar</strong> 
+                diseñada específicamente para <strong>vehículos eléctricos</strong>. Sin embargo, también puede utilizarse para 
+                diseñar sistemas de carga para otros tipos de dispositivos electrónicos que requieran energía autónoma.
+            </p>
+            <p>
+                A través de cuatro secciones, determinarás:
+            </p>
+            <ul>
+                <li><strong>Sección 1:</strong> La capacidad de batería necesaria según la potencia y tiempo de carga</li>
+                <li><strong>Sección 2:</strong> La cantidad y configuración óptima de paneles solares</li>
+                <li><strong>Sección 3:</strong> Las especificaciones mínimas del inversor recomendado</li>
+                <li><strong>Sección 4:</strong> El calibre preliminar de los conductores AC a 110, 120, 220 o 240 V, según potencia y distancia</li>
+            </ul>
+            <p>
+                Ingresa tus datos reales en cada paso y el sistema te mostrará las recomendaciones específicas para tu caso.
+            </p>
+        </section>
+
+        <!-- SECCIÓN 1: DIMENSIONAMIENTO DE BATERÍAS -->
+        <section class="seccion" id="seccion-baterias">
+            <h2>1. Dimensionamiento de baterías</h2>
+            
+            <div class="descripcion-seccion">
+                <p>
+                    <strong>¿Por qué esta sección?</strong> El banco de baterías es el "depósito de energía" de tu sistema. 
+                    Necesitamos conocer cuánta potencia consumirá tu vehículo eléctrico y por cuánto tiempo, para recomendarte 
+                    una batería con capacidad suficiente.
+                </p>
+                <p>
+                    <strong>Resultado esperado:</strong> Una recomendación de capacidad mínima de batería (en Wh) 
+                    que garantice que tu sistema funcione sin depender del sol.
+                </p>
+            </div>
+
+            <!-- Paso 1.1 -->
+            <div class="paso">
+                <h3>Paso 1.1 — Potencia de consumo</h3>
+                <p class="subtitulo-paso">Ingresa la potencia máxima que consume el vehículo eléctrico</p>
+                <label for="P_dispositivo">Potencia del vehículo eléctrico (W)</label>
+                <input type="number" id="P_dispositivo" placeholder="Ej: 500" min="0" step="0.01">
+                <button class="btn-calcular" onclick="calcularPaso1_1()">Registrar potencia</button>
+                <div id="resultado-1-1" class="resultado"></div>
+            </div>
+
+            <!-- Paso 1.2 -->
+            <div class="paso">
+                <h3>Paso 1.2 — Tiempo de carga por sesión</h3>
+                <p class="subtitulo-paso">¿Por cuántas horas necesitas cargar en cada sesión?</p>
+                <label for="t_sesion">Duración de la sesión de carga (h)</label>
+                <input type="number" id="t_sesion" placeholder="Ej: 4" min="0" step="0.01">
+                <button class="btn-calcular" onclick="calcularPaso1_2()">Calcular energía de sesión</button>
+                <div id="resultado-1-2" class="resultado"></div>
+            </div>
+
+            <!-- Paso 1.3 -->
+            <div class="paso">
+                <h3>Paso 1.3 — Autonomía del sistema</h3>
+                <p class="subtitulo-paso">¿Cuántos vehículos estarán conectados al mismo tiempo para carga?</p>
+                <label for="num_dispositivos">Número de vehículos simultáneos</label>
+                <input type="number" id="num_dispositivos" placeholder="Ej: 2" min="1" step="1">
+                <button class="btn-calcular" onclick="calcularPaso1_3()">Calcular energía requerida y recomendar batería</button>
+                <div id="resultado-1-3" class="resultado"></div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: DIMENSIONAMIENTO DE PANELES -->
+        <section class="seccion" id="seccion-paneles">
+            <h2>2. Dimensionamiento de paneles solares</h2>
+
+            <div class="descripcion-seccion">
+                <p>
+                    <strong>¿Por qué esta sección?</strong> Los paneles solares son la "fuente de energía" del sistema. 
+                    Necesitamos determinar cuántos paneles necesitas y cómo conectarlos (en serie o paralelo) para 
+                    generar la potencia suficiente.
+                </p>
+                <p>
+                    <strong>Resultado esperado:</strong> Una configuración de paneles (cantidad, serie/paralelo) 
+                    y especificaciones eléctricas del arreglo.
+                </p>
+            </div>
+
+            <!-- Paso 2.1 -->
+            <div class="paso">
+                <h3>Paso 2.1 — Horas Solar Pico</h3>
+                
+                <div class="explicacion-hsp">
+                    <p>
+                        <strong>¿Qué son las Horas Solar Pico (HSP)?</strong><br>
+                        Son el número de horas diarias equivalentes en las que el sol irradia una potencia constante de 1000 W/m². 
+                        Esta medida es fundamental para calcular cuánta energía generarán tus paneles solares en tu ubicación específica.
+                    </p>
+                    <p>
+                        <strong>¿Cómo obtener este valor?</strong><br>
+                        Ingresa tu ciudad en la siguiente herramienta y obtendrás el promedio anual de HSP:
+                    </p>
+                    <a href="https://footprinthero.com/peak-sun-hours-calculator#how-to-calculate-peak-sun-hours" target="_blank" class="enlace-externo">
+                        📊 Calculadora de Horas Solar Pico (Footprint Hero)
+                    </a>
+                    <p style="font-size: 0.85em; color: #666; margin-top: 10px;">
+                        <strong>Nota importante:</strong> No es necesario ingresar el ángulo de inclinación ni de acimut del panel. 
+                        Simplemente busca tu ciudad y utiliza el <strong>promedio anual</strong> que sugiere la página.
+                    </p>
+                </div>
+
+                <label for="HSP">Horas Solar Pico promedio anual (h)</label>
+                <input type="number" id="HSP" placeholder="Ej: 4.5" min="0" step="0.01">
+                <button class="btn-calcular" onclick="registrarHSP()">Registrar Horas Solar Pico</button>
+                <div id="resultado-2-1" class="resultado"></div>
+            </div>
+
+            <!-- Paso 2.2 — Se muestra automáticamente cuando se registra HSP -->
+            <div class="paso" id="paso-2-2" style="display: none;">
+                <h3>Paso 2.2 — Potencia del arreglo solar</h3>
+                <p class="subtitulo-paso">Cálculo automático basado en energía requerida y Horas Solar Pico</p>
+                <div id="resultado-2-2" class="resultado"></div>
+            </div>
+
+            <!-- Paso 2.3 -->
+            <div class="paso">
+                <h3>Paso 2.3 — Configuración del arreglo de paneles</h3>
+                <p class="subtitulo-paso">Selecciona los paneles y verás 3 opciones de configuración</p>
+                <label for="P_panel">Potencia nominal del panel (W)</label>
+                <input type="number" id="P_panel" placeholder="Ej: 400" min="0" step="0.01" onchange="autoCalcularPaso2_3()">
+                
+                <label for="V_nominal">Voltaje nominal del panel (V)</label>
+                <select id="V_nominal" onchange="autoCalcularPaso2_3()">
+                    <option value="">-- Selecciona un voltaje --</option>
+                    <option value="12">12 V</option>
+                    <option value="24">24 V</option>
+                    <option value="48">48 V</option>
+                </select>
+                
+                <div id="resultado-2-3" class="resultado"></div>
+            </div>
+
+            <!-- Selección de opciones -->
+            <div class="paso">
+                <div id="selector-opciones" style="display:none;">
+                    <p style="font-weight: 600; margin-bottom: 15px;">Selecciona la configuración que prefieras:</p>
+                    <div id="opciones-container" style="display: grid; gap: 15px;">
+                        <!-- Las opciones se generarán dinámicamente aquí -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: DIMENSIONAMIENTO DEL INVERSOR -->
+        <section class="seccion" id="seccion-inversor">
+            <h2>3. Dimensionamiento del inversor</h2>
+
+            <div class="descripcion-seccion">
+                <p>
+                    <strong>¿Por qué esta sección?</strong> El inversor convierte la energía DC de los paneles 
+                    en energía AC para alimentar tu vehículo eléctrico. Sus especificaciones deben ser compatibles 
+                    con tu arreglo solar y carga.
+                </p>
+                <p>
+                    <strong>Resultado esperado:</strong> Especificaciones mínimas del inversor (potencia de entrada/salida) 
+                    y criterios técnicos para verificar compatibilidad.
+                </p>
+            </div>
+
+            <div class="paso">
+                <h3>Especificaciones del inversor</h3>
+                <div id="resultado-3" class="resultado"></div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 4: DIMENSIONAMIENTO DE CONDUCTORES AC A VARIAS TENSIONES -->
+        <section class="seccion" id="seccion-cables-ac">
+            <h2>4. Dimensionamiento de conductores AC</h2>
+            <div class="descripcion-seccion">
+                <p><strong>¿Por qué esta sección?</strong> Calcula el calibre preliminar de los dos conductores activos del circuito que alimenta al EVSE, considerando simultáneamente la capacidad de corriente y la caída de tensión. Para 110/120 V se supone fase-neutro; para 220/240 V se supone fase-fase.</p>
+                <p><strong>Alcance:</strong> 110, 120, 220 o 240 V AC monofásicos, cobre y caída de tensión objetivo de 3 %. Para circuitos domiciliarios o similares de carga de vehículos eléctricos se considera el mínimo de 20 A previsto en el RETIE 2026. La selección definitiva debe verificar las condiciones de instalación y las protecciones.</p>
+            </div>
+            <div class="paso paso-cables-ac">
+                <h3>Paso 4.1 — Tensión y longitud del circuito AC</h3>
+                <p class="subtitulo-paso">La potencia se toma automáticamente del Paso 1.1. Selecciona la tensión de alimentación del EVSE e ingresa la distancia de ida.</p>
+                <div class="info-origen-ac">
+                    <div><small>Configuración del circuito</small><strong id="configuracion_ac">110 V · fase y neutro</strong></div>
+                    <div><small>Potencia del Paso 1.1</small><strong id="potencia_ac_origen">Sin registrar</strong></div>
+                </div>
+                <p class="texto-ayuda-ac" id="estado-potencia-ac" aria-live="polite"></p>
+                <label for="tension_ac">Tensión AC nominal entre los dos conductores de alimentación</label>
+                <select id="tension_ac" aria-describedby="ayuda-tension-ac">
+                    <option value="110" selected>110 V — fase y neutro (L-N)</option>
+                    <option value="120">120 V — fase y neutro (L-N)</option>
+                    <option value="220">220 V — dos fases/líneas (L1-L2)</option>
+                    <option value="240">240 V — dos fases/líneas (L1-L2)</option>
+                </select>
+                <p class="texto-ayuda-ac" id="ayuda-tension-ac">Selecciona la tensión real de salida del inversor o del tablero y verifica la compatibilidad del EVSE y del vehículo. El prototipo de referencia se plantea a 110 V.</p>
+                <label for="distancia_ac">Distancia desde el tablero/inversor hasta el EVSE (m, solo ida)</label>
+                <input type="number" id="distancia_ac" min="0.01" step="0.01" inputmode="decimal" placeholder="Ej: 20">
+                <p class="texto-ayuda-ac">Escribe la longitud del recorrido real del conductor, no la distancia en línea recta. El cálculo considera los dos conductores de alimentación (ida y retorno); no incluye el conductor de protección PE.</p>
+                <button type="button" class="btn-calcular" id="btn-calcular-ac">Calcular calibre de los conductores AC</button>
+                <div id="resultado-4" class="resultado resultado-ac" role="status" aria-live="polite"></div>
+            </div>
+            <p class="referencia-ac"><strong>Base reglamentaria:</strong> RETIE, Resolución 40284 de 2026, Libro 3, artículo 3.17.7; NTC 2050 segunda actualización, criterios de conductores, protecciones y carga de vehículos eléctricos. <a href="https://www.minenergia.gov.co/es/misional/energia-electrica-2/reglamentos-tecnicos/reglamento-t%C3%A9cnico-de-instalaciones-el%C3%A9ctricas-retie/" target="_blank" rel="noopener noreferrer">Consultar texto oficial del RETIE</a>.</p>
+        </section>
+
+        <!-- BOTÓN DE REINICIO -->
+        <footer class="pie">
+            <button class="btn-reiniciar" onclick="reiniciarApp()">Reiniciar cálculos</button>
+            <p class="nota">Versión 1.7 - Dimensionador Solar · Conductores AC 110/120/220/240 V</p>
+        </footer>
+    </div>
+
+    <script src="calculos.js"></script>
+    <script src="cables_ac.js"></script>
+</body>
+</html>
