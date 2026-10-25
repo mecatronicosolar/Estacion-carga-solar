@@ -14,6 +14,8 @@ Los procedimientos se encuentran organizados en archivos Markdown independientes
 
 ## 2. Organización de las pruebas
 
+## BLOQUE 1: Sensores analógicos + ADC (V_PV, I_PV, V_BAT, I_BAT)
+
 ### 2.1. Sensores analógicos y conversión analógico-digital
 
 | Código | Prueba | Documentación |
