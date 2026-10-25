@@ -1,5 +1,4 @@
-# P01 — Caracterización del divisor resistivo V_PV
-### Prueba 1.1 — Divisor resistivo V_PV (caracterización de la atenuación)
+# P01 — Divisor resistivo V_PV (caracterización de la atenuación)
 
 **Objetivo:** Verificar que el divisor reduce la tensión nominal del sistema a un rango compatible con el ADS1015 (0–3.3 V).
 
