@@ -1,98 +1,61 @@
-# P07 — PZEM-016 (Modbus-RTU básico y lecturas AC)
+# P07 — Dos DS18B20 en el mismo bus 1-Wire (T_BAT + T_AMB)
 
-**Objetivo:** Verificar que el PZEM-016 responde a comandos Modbus-RTU y entrega mediciones coherentes.
+**Objetivo:** Verificar que dos sensores en el mismo bus no interfieren y pueden identificarse de forma única.
 
 **Equipamiento:**
-- PZEM-016 con CT PZCT-02 acoplado
-- Fuente AC de laboratorio 110 V / 60 Hz (o toma de pared regulada)
-- Carga AC controlable (bombilla, resistor de potencia, etc.)
-- Multímetro AC para validación cruzada
-- Raspberry Pi con módulo XY-017 (o cable USB-RS485 si prefieres)
+- Dos DS18B20 distintos
+- Mismo circuito de pull-up (una sola resistencia 4.7 kΩ sirve para ambos)
+- GPIO 4 de Raspberry Pi
 
 **Paso a paso:**
 
-1. Arma la conexión Modbus-RTU:
+1. Conecta ambos sensores en paralelo al GPIO 4:
    ```
-   Raspberry Pi (UART0) ←[XY-017]→ RS485 ←→ PZEM-016
-   GPIO 14 (TX) → XY-017 TXD
-   GPIO 15 (RX) → XY-017 RXD
-   GPIO 17 → XY-017 DE/RE (control de dirección)
-   XY-017 A/A+ → PZEM A
-   XY-017 B/B− → PZEM B
+   DS18B20_1   GND ─┬─ GND Raspberry Pi
+              DQ  ─┼─ GPIO 4 (con pull-up)
+              VCC ─┼─ +3.3 V
+              
+   DS18B20_2   GND ─┤
+              DQ  ─┤
+              VCC ─┤
    ```
 
-2. Instala la librería Modbus en Raspberry Pi:
+2. Lista los dispositivos 1-Wire:
    ```bash
-   pip3 install pymodbus
+   ls /sys/bus/w1/devices/
+   # Debe mostrar DOS direcciones distintas, ej:
+   # 28-000000000001
+   # 28-000000000002
    ```
 
-3. Escribe un script Python simple para leer registros Modbus:
+3. Lee ambos sensores simultáneamente:
    ```python
-   from pymodbus.client import ModbusSerialClient
+   import glob
    import time
    
-   client = ModbusSerialClient(method='rtu', port='/dev/ttyAMA0', 
-                                baudrate=38400, stopbits=1, bytesize=8)
-   client.connect()
+   devices = glob.glob('/sys/bus/w1/devices/28-*/w1_slave')
    
-   # PZEM-016: dirección Modbus = 0x01 (por defecto)
-   # Registros de entrada (función 0x04):
-   # 0x0000: Voltage (V) × 10
-   # 0x0001: Current (A) × 100
-   # 0x0002: Power (W)
-   # 0x0003: Energy (kWh) × 100
-   # 0x0004: Frequency (Hz) × 10
-   # 0x0005: Power Factor × 100
-   
-   while True:
-       result = client.read_input_registers(0x0000, 6, unit=0x01)
-       if result.isError():
-           print("Error Modbus")
-       else:
-           V = result.registers[0] / 10.0
-           I = result.registers[1] / 100.0
-           P = result.registers[2]
-           E = result.registers[3] / 100.0
-           f = result.registers[4] / 10.0
-           PF = result.registers[5] / 100.0
-           print(f"V={V:.1f}V, I={I:.2f}A, P={P}W, E={E:.2f}kWh, f={f:.1f}Hz, PF={PF:.2f}")
-       time.sleep(1)
+   for device in sorted(devices):
+       with open(device, 'r') as f:
+           lines = f.readlines()
+           if lines[0].strip()[-3:] == 'YES':
+               temp = float(lines[1].split('t=')[1]) / 1000.0
+               print(f"{device.split('/')[-2]}: {temp:.3f} °C")
    ```
 
-4. Energiza el PZEM-016 sin carga:
-   - Lee V_AC, I_AC, P, E, f, PF
-   - Anota 5 lecturas
-
-5. Conecta una carga conocida (ej: resistor de 1000 W, 110 V):
-   - Lee nuevamente
-   - Verifica: P ≈ V × I / PF (potencia activa)
-   - Mide con multímetro AC en paralelo para validar V e I.
+4. Aplica calor a un sensor manteniendo el otro a temperatura ambiente, y verifica que se diferencian correctamente.
 
 **Criterios de aceptación:**
-- Comunicación Modbus-RTU: éxito en lectura sin errores
-- Tensión: 110 V ± 2 V (coincide con multímetro)
-- Corriente: coincide con pinza amperimétrica ± 1 %
-- Potencia: P = V × I × cos(φ) ± 3 %
-- Frecuencia: 60 Hz ± 0.1 Hz
-- Factor de potencia: 0.98–1.00 sin carga reactiva
+- Ambos sensores detectados en direcciones distintas
+- Lectura independiente sin crosstalk
+- Diferencia de temperatura entre sensores: > 1 °C cuando uno se calienta
 
 **Resultado esperado:**
 
 ```
-Sin carga:
-V = 110.2 V (multímetro: 110.1 V) ✓
-I = 0.03 A
-P = 0 W (o < 5 W por consumo del medidor)
-f = 60.00 Hz
-PF = 0.99
-
-Con carga 1000 W:
-V = 109.8 V (multímetro: 109.9 V) ✓
-I = 9.09 A (multímetro: 9.10 A) ✓
-P = 999 W (teórico: 110 × 9.09 = 1000 W) ✓
-f = 60.00 Hz
-PF = 0.99
+28-000000000001: 22.512 °C (T_AMB ambiente)
+28-000000000002: 35.156 °C (T_BAT con calor aplicado)
+✓ Diferenciación correcta
 ```
 
 ---
-
