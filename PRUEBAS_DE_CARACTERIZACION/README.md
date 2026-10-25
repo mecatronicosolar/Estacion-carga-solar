@@ -16,43 +16,42 @@ Los procedimientos se encuentran organizados en archivos Markdown independientes
 
 ## BLOQUE 1: Sensores analógicos + ADC (V_PV, I_PV, V_BAT, I_BAT)
 
-### 2.1. Sensores analógicos y conversión analógico-digital
 
 | Código | Prueba | Documentación |
 |---|---|---|
-| P01 | Caracterización del divisor resistivo V_PV | [Ver prueba](./P01_Divisor_Resistivo.md) |
-| P02 | Calibración del sensor de corriente ACS758 | [Ver prueba](./P02_ACS758.md) |
-| P03 | Caracterización del shunt FL-2 | [Ver prueba](./P03_Shunt_FL2.md) |
-| P04 | Verificación del conversor ADS1015 | [Ver prueba](./P04_ADS1015.md) |
-| P05 | Integración del divisor resistivo y ADS1015 | [Ver prueba](./P05_Divisor_ADS1015.md) |
+| P01 | Divisor resistivo V_PV (caracterización de la atenuación) | [Ver prueba](./P01_Divisor_Resistivo.md) |
+| P02 | Sensor Hall ACS758LCB-050B (calibración I_PV) | [Ver prueba](./P02_ACS758.md) |
+| P03 | Shunt FL-2 (caracterización diferencial I_BAT) | [Ver prueba](./P03_Shunt_FL2.md) |
+| P04 | ADS1015 (verificación I²C y resolución) | [Ver prueba](./P04_ADS1015.md) |
+| P05 | Integración ADS1015 + divisor resistivo (V_PV) | [Ver prueba](./P05_Divisor_ADS1015.md) |
 
-### 2.2. Sensores de temperatura
-
-| Código | Prueba | Documentación |
-|---|---|---|
-| P06 | Caracterización individual del sensor DS18B20 | [Ver prueba](./P06_DS18B20.md) |
-| P07 | Verificación de dos sensores DS18B20 en un mismo bus 1-Wire | [Ver prueba](./P07_Dos_DS18B20.md) |
-
-### 2.3. Medición de variables eléctricas AC
+## BLOQUE 2: Sensores de temperatura (DS18B20)
 
 | Código | Prueba | Documentación |
 |---|---|---|
-| P08 | Comunicación Modbus-RTU y mediciones del PZEM-016 | [Ver prueba](./P08_PZEM016_Modbus.md) |
-| P09 | Caracterización del PZEM-016 con transformador de corriente | [Ver prueba](./P09_PZEM016_CT.md) |
+| P06 | DS18B20 (comunicación 1-Wire y respuesta térmica) | [Ver prueba](./P06_DS18B20.md) |
+| P07 | Dos DS18B20 en el mismo bus 1-Wire (T_BAT + T_AMB) | [Ver prueba](./P07_Dos_DS18B20.md) |
 
-### 2.4. Interfaces de comunicación
-
-| Código | Prueba | Documentación |
-|---|---|---|
-| P10 | Verificación del módulo RS-485 XY-017 | [Ver prueba](./P10_XY017.md) |
-| P11 | Verificación de la interfaz SC16IS750 y MAX3232 | [Ver prueba](./P11_MAX3232_SC16IS750.md) |
-
-### 2.5. Pruebas de integración
+## BLOQUE 3: Medidor AC (PZEM-016)
 
 | Código | Prueba | Documentación |
 |---|---|---|
-| P12 | Integración de la cadena de adquisición DC | [Ver prueba](./P12_Adquisicion_DC.md) |
-| P13 | Integración de mediciones AC, DC y temperatura | [Ver prueba](./P13_Monitoreo_Integrado.md) |
+| P08 | PZEM-016 (Modbus-RTU básico y lecturas AC) | [Ver prueba](./P08_PZEM016_Modbus.md) |
+| P09 | PZEM-016 con Transformador de Corriente (CT) | [Ver prueba](./P09_PZEM016_CT.md) |
+
+## BLOQUE 4: Conversores de comunicación (MAX3232, SC16IS750, XY-017)
+
+| Código | Prueba | Documentación |
+|---|---|---|
+| P10 | XY-017 (TTL–RS485 con control de dirección) | [Ver prueba](./P10_XY017.md) |
+| P11 | MAX3232 + SC16IS750 (RS-232 para ML2440) | [Ver prueba](./P11_MAX3232_SC16IS750.md) |
+
+## PBLOQUE 5: RUEBAS CONJUNTAS (integración de sensores antes del montaje final)
+
+| Código | Prueba | Documentación |
+|---|---|---|
+| P12 | ADS1015 + ACS758 + Divisor resistivo (cadena completa de DC) | [Ver prueba](./P12_Adquisicion_DC.md) |
+| P13 |PZEM-016 + DS18B20 + ADS1015 (monitoreo integrado) | [Ver prueba](./P13_Monitoreo_Integrado.md) |
 
 ---
 
