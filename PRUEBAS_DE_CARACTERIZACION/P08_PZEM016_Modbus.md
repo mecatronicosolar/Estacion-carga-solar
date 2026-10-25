@@ -1,51 +1,97 @@
-# P08 — PZEM-016 con Transformador de Corriente (CT)
+# P08 — PZEM-016 (Modbus-RTU básico y lecturas AC)
 
-**Objetivo:** Verificar que el transformador de corriente se acopla correctamente y el PZEM mide corriente sin romper el circuito.
+**Objetivo:** Verificar que el PZEM-016 responde a comandos Modbus-RTU y entrega mediciones coherentes.
 
 **Equipamiento:**
-- PZEM-016 + CT PZCT-02
-- Fuente AC 110 V 60 Hz
-- Carga AC variable (0–10 A)
-- Pinza amperimétrica de referencia
+- PZEM-016 con CT PZCT-02 acoplado
+- Fuente AC de laboratorio 110 V / 60 Hz (o toma de pared regulada)
+- Carga AC controlable (bombilla, resistor de potencia, etc.)
+- Multímetro AC para validación cruzada
+- Raspberry Pi con módulo XY-017 (o cable USB-RS485 si prefieres)
 
 **Paso a paso:**
 
-1. Instala el CT en serie con el conductor de fase:
+1. Arma la conexión Modbus-RTU:
    ```
-   Red AC ─[RCCB]─[CT PZCT-02]─[Carga]─ Retorno
-                  ↓ (enrollado)
-                  PZEM-016 (entrada de corriente)
+   Raspberry Pi (UART0) ←[XY-017]→ RS485 ←→ PZEM-016
+   GPIO 14 (TX) → XY-017 TXD
+   GPIO 15 (RX) → XY-017 RXD
+   GPIO 17 → XY-017 DE/RE (control de dirección)
+   XY-017 A/A+ → PZEM A
+   XY-017 B/B− → PZEM B
    ```
 
-2. Energiza sin carga: I debe leer 0.00–0.05 A.
+2. Instala la librería Modbus en Raspberry Pi:
+   ```bash
+   pip3 install pymodbus
+   ```
 
-3. Aplica cargas progresivas: 2 A, 4 A, 6 A, 8 A, 10 A.
+3. Escribe un script Python simple para leer registros Modbus:
+   ```python
+   from pymodbus.client import ModbusSerialClient
+   import time
+   
+   client = ModbusSerialClient(method='rtu', port='/dev/ttyAMA0', 
+                                baudrate=38400, stopbits=1, bytesize=8)
+   client.connect()
+   
+   # PZEM-016: dirección Modbus = 0x01 (por defecto)
+   # Registros de entrada (función 0x04):
+   # 0x0000: Voltage (V) × 10
+   # 0x0001: Current (A) × 100
+   # 0x0002: Power (W)
+   # 0x0003: Energy (kWh) × 100
+   # 0x0004: Frequency (Hz) × 10
+   # 0x0005: Power Factor × 100
+   
+   while True:
+       result = client.read_input_registers(0x0000, 6, unit=0x01)
+       if result.isError():
+           print("Error Modbus")
+       else:
+           V = result.registers[0] / 10.0
+           I = result.registers[1] / 100.0
+           P = result.registers[2]
+           E = result.registers[3] / 100.0
+           f = result.registers[4] / 10.0
+           PF = result.registers[5] / 100.0
+           print(f"V={V:.1f}V, I={I:.2f}A, P={P}W, E={E:.2f}kWh, f={f:.1f}Hz, PF={PF:.2f}")
+       time.sleep(1)
+   ```
 
-4. Para cada carga, mide:
-   - Corriente con pinza amperimétrica
-   - Corriente con PZEM-016
-   - Error porcentual
+4. Energiza el PZEM-016 sin carga:
+   - Lee V_AC, I_AC, P, E, f, PF
+   - Anota 5 lecturas
 
-5. Verifica energía acumulada:
-   - Déjalo funcionando 5 minutos a carga constante
-   - Lee el acumulador de energía (E)
-   - Compara: E esperada = P × t / 1000
+5. Conecta una carga conocida (ej: resistor de 1000 W, 110 V):
+   - Lee nuevamente
+   - Verifica: P ≈ V × I / PF (potencia activa)
+   - Mide con multímetro AC en paralelo para validar V e I.
 
 **Criterios de aceptación:**
-- Acoplamiento CT: instalación sin romper circuito ✓
-- Linealidad: R² > 0.98 de I vs. carga
-- Precisión: error ≤ 2 % en rango 2–10 A
-- Energía: E medida ± 3 % de E esperada
+- Comunicación Modbus-RTU: éxito en lectura sin errores
+- Tensión: 110 V ± 2 V (coincide con multímetro)
+- Corriente: coincide con pinza amperimétrica ± 1 %
+- Potencia: P = V × I × cos(φ) ± 3 %
+- Frecuencia: 60 Hz ± 0.1 Hz
+- Factor de potencia: 0.98–1.00 sin carga reactiva
 
 **Resultado esperado:**
 
-| Carga nominal (A) | I_PZEM (A) | I_pinza (A) | Error % |
-|---|---|---|---|
-| 0 | 0.02 | 0.01 | — |
-| 2 | 1.98 | 2.00 | −1.0 |
-| 4 | 3.97 | 4.00 | −0.75 |
-| 6 | 5.98 | 6.00 | −0.33 |
-| 8 | 8.04 | 8.00 | +0.5 |
-| 10 | 9.98 | 10.00 | −0.2 |
+```
+Sin carga:
+V = 110.2 V (multímetro: 110.1 V) ✓
+I = 0.03 A
+P = 0 W (o < 5 W por consumo del medidor)
+f = 60.00 Hz
+PF = 0.99
+
+Con carga 1000 W:
+V = 109.8 V (multímetro: 109.9 V) ✓
+I = 9.09 A (multímetro: 9.10 A) ✓
+P = 999 W (teórico: 110 × 9.09 = 1000 W) ✓
+f = 60.00 Hz
+PF = 0.99
+```
 
 ---
