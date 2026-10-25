@@ -1,12 +1,6 @@
 
 # Pruebas de caracterización
 
-**Trabajo de grado:** Diseño y validación a escala de una estación de carga vehicular con energía solar, almacenamiento en baterías y respaldo de red.
-
-**Programa:** Ingeniería Mecatrónica  
-**Institución:** Pontificia Universidad Javeriana
-
----
 
 ## 1. Descripción general
 
