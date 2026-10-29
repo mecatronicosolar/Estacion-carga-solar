@@ -145,7 +145,7 @@
     outline: none;
     border-color: #2c5aa0;
     background-color: #f0f6fb;
-}.solar-sizing .paso input:invalid {
+}.solar-sizing .paso input[aria-invalid="true"] {
     border-color: #dc3545;
 }.solar-sizing .paso select {
     cursor: pointer;
@@ -399,3 +399,38 @@
 @media(max-width:560px) {.solar-sizing .info-origen-ac, .solar-sizing .datos-cable-grid {grid-template-columns:1fr;}.solar-sizing .calibre-ac-principal strong {font-size:1.65rem;} }
 
 body.sizing-page{overflow:auto;padding:0;margin:0}.solar-sizing{padding:32px 16px 48px;min-height:0;background:none;font:inherit}.solar-sizing .contenedor-principal{max-width:1100px}.solar-sizing .encabezado{background:var(--green-dark)}.solar-sizing section{scroll-margin-top:100px}.solar-sizing .seccion h2{overflow-wrap:anywhere}.solar-sizing .paso,.solar-sizing .resultado{min-width:0;overflow-wrap:anywhere}.solar-sizing .pie{display:block;text-align:center}.solar-sizing .referencia-ac{padding:16px 24px}.solar-sizing .referencia-ac p{margin:12px 0}@media(max-width:640px){.solar-sizing{padding:16px 8px 32px}.solar-sizing .encabezado{padding:28px 16px}.solar-sizing .encabezado h1{font-size:1.8rem}.solar-sizing .opcion-arreglo .detalle{grid-template-columns:1fr}}
+
+/* Guía de uso y ayudas visibles del dimensionador. */
+.solar-sizing .guia-inicio { background:#f4faf7; }
+.solar-sizing .etiqueta-guia { font-size:.8rem;font-weight:700;color:#24684e;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px; }
+.solar-sizing .guia-inicio h2 { color:#164d38;border-left-color:#24684e;margin-bottom:16px; }
+.solar-sizing .guia-inicio > p { line-height:1.75; }
+.solar-sizing .datos-previos { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px;margin:18px 0; }
+.solar-sizing .datos-previos > div { padding:16px 0;border-bottom:1px solid #d8e8df;min-width:0; }
+.solar-sizing .datos-previos dt { font-weight:650;color:#164d38;margin-bottom:6px; }
+.solar-sizing .datos-previos dd { margin:0;font-size:.94rem;line-height:1.75;color:#374e43; }
+.solar-sizing .regla-entradas { margin:20px 0;color:#2d4438; }
+.solar-sizing .guia-recorrido { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:24px 0 16px; }
+.solar-sizing .guia-recorrido a { display:flex;align-items:center;gap:8px;padding:11px 12px;color:#164d38;background:#fff;border:1px solid #b7d2c2;border-radius:6px;text-decoration:none;font-size:.9rem;font-weight:600; }
+.solar-sizing .guia-recorrido a:hover { background:#e3f1e9; }
+.solar-sizing .guia-recorrido span { font-weight:750; }
+.solar-sizing .alcance-guia { font-size:.9rem;color:#526258;margin-bottom:18px; }
+.solar-sizing .enlace-comenzar, .solar-sizing .volver-guia { display:inline-block;color:#164d38;font-weight:650;text-underline-offset:3px; }
+.solar-sizing .ayuda-campo { font-size:.92rem;line-height:1.65;color:#435769;margin:0 0 10px;max-width:76ch; }
+.solar-sizing .ayuda-seccion { font-size:.95rem;line-height:1.75;margin:0 0 22px;color:#435769; }
+.solar-sizing .paso input, .solar-sizing .paso select { margin-bottom:12px; }
+.solar-sizing .paso input[aria-invalid="true"] { border-color:#b42318; }
+.solar-sizing .error-campo { color:#a51d14;font-size:.92rem;line-height:1.6;margin:-4px 0 14px;font-weight:500; }
+.solar-sizing .error-general { margin:20px 30px;padding:14px 16px;border-left:4px solid #b42318;background:#fff1f0;color:#8a211a; }
+.solar-sizing .error-campo[hidden], .solar-sizing .error-general[hidden] { display:none; }
+.solar-sizing .dudas-uso details { border-bottom:1px solid #dbe4e9;padding:16px 0; }
+.solar-sizing .dudas-uso summary { cursor:pointer;font-weight:600;color:#243e50; }
+.solar-sizing .dudas-uso details p { margin-top:10px;line-height:1.75;color:#435769; }
+.solar-sizing .volver-guia { margin-top:24px; }
+.solar-sizing input, .solar-sizing select, .solar-sizing .paso, .solar-sizing #error-dimensionador { scroll-margin-top:110px; }
+.solar-sizing a:focus-visible, .solar-sizing summary:focus-visible { outline:3px solid #24684e;outline-offset:4px; }
+@media(max-width:640px) {
+ .solar-sizing .datos-previos { grid-template-columns:1fr; }
+ .solar-sizing .guia-recorrido { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .solar-sizing .error-general { margin:16px; }
+}

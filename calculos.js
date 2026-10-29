@@ -15,46 +15,71 @@ let estado = {
 };
 
 // ===== FUNCIONES DE VALIDACIÓN =====
-function validarNumero(valor, nombre) {
+function validarNumero(valor, nombre, campoId, enfocar = true) {
     if (valor === null || valor === undefined || valor === '') {
-        mostrarError(`El campo "${nombre}" es requerido`);
+        mostrarError(`Completa el campo «${nombre}».`, campoId, enfocar);
         return false;
     }
-    const num = parseFloat(valor);
-    if (isNaN(num)) {
-        mostrarError(`El valor "${nombre}" debe ser un número válido`);
+    const num = Number(valor);
+    if (!Number.isFinite(num)) {
+        mostrarError(`Escribe un número válido y finito en «${nombre}».`, campoId, enfocar);
         return false;
     }
     if (num <= 0) {
-        mostrarError(`El valor "${nombre}" debe ser mayor que cero`);
+        mostrarError(`El valor de «${nombre}» debe ser mayor que cero.`, campoId, enfocar);
         return false;
     }
+    limpiarErrorCampo(campoId);
     return num;
 }
 
-function validarEntero(valor, nombre) {
+function validarEntero(valor, nombre, campoId, enfocar = true) {
     if (valor === null || valor === undefined || valor === '') {
-        mostrarError(`El campo "${nombre}" es requerido`);
+        mostrarError(`Completa el campo «${nombre}».`, campoId, enfocar);
         return false;
     }
-    const num = parseInt(valor, 10);
-    if (isNaN(num)) {
-        mostrarError(`El valor "${nombre}" debe ser un número entero válido`);
+    const num = Number(valor);
+    if (!Number.isFinite(num)) {
+        mostrarError(`Escribe un número entero válido en «${nombre}».`, campoId, enfocar);
         return false;
     }
     if (num <= 0) {
-        mostrarError(`El valor "${nombre}" debe ser mayor que cero`);
+        mostrarError(`El valor de «${nombre}» debe ser igual o mayor que 1.`, campoId, enfocar);
         return false;
     }
-    if (num !== parseFloat(valor)) {
-        mostrarError(`El valor "${nombre}" debe ser un número entero, sin decimales`);
+    if (!Number.isSafeInteger(num)) {
+        mostrarError(`Escribe una cantidad entera, sin decimales, en «${nombre}», como 1 o 2.`, campoId, enfocar);
         return false;
     }
+    limpiarErrorCampo(campoId);
     return num;
 }
 
-function mostrarError(mensaje) {
-    alert(`⚠️ Error de validación: ${mensaje}`);
+function limpiarErrorCampo(campoId) {
+    if (!campoId) return;
+    const campo = document.getElementById(campoId);
+    const error = document.getElementById(`error-${campoId}`);
+    if (campo) campo.removeAttribute('aria-invalid');
+    if (error) { error.hidden = true; error.textContent = ''; }
+}
+
+function mostrarError(mensaje, campoId, enfocar = true) {
+    const campo = campoId && document.getElementById(campoId);
+    const error = campoId && document.getElementById(`error-${campoId}`);
+    const general = document.getElementById('error-dimensionador');
+    if (campo && error) {
+        if (general) general.hidden = true;
+        campo.setAttribute('aria-invalid', 'true');
+        error.textContent = mensaje;
+        error.hidden = false;
+        if (enfocar) campo.focus();
+    } else if (general) {
+        general.textContent = mensaje;
+        general.hidden = false;
+        if (enfocar) general.focus();
+    } else {
+        alert(`Error de validación: ${mensaje}`);
+    }
 }
 
 function limpiarResultado(id) {
@@ -84,7 +109,7 @@ function calcularPaso1_1() {
     limpiarResultado('resultado-1-1');
     
     const P_dispositivo_input = document.getElementById('P_dispositivo').value;
-    const P_dispositivo = validarNumero(P_dispositivo_input, 'Potencia del vehículo eléctrico');
+    const P_dispositivo = validarNumero(P_dispositivo_input, 'Potencia de carga', 'P_dispositivo');
     
     if (!P_dispositivo) return;
     
@@ -107,7 +132,7 @@ function calcularPaso1_2() {
     }
     
     const t_sesion_input = document.getElementById('t_sesion').value;
-    const t_sesion = validarNumero(t_sesion_input, 'Duración de la sesión');
+    const t_sesion = validarNumero(t_sesion_input, 'Duración de la sesión', 't_sesion');
     
     if (!t_sesion) return;
     
@@ -136,7 +161,7 @@ function calcularPaso1_3() {
     }
     
     const num_dispositivos_input = document.getElementById('num_dispositivos').value;
-    const num_dispositivos = validarEntero(num_dispositivos_input, 'Número de vehículos simultáneos');
+    const num_dispositivos = validarEntero(num_dispositivos_input, 'Número de vehículos simultáneos', 'num_dispositivos');
     
     if (!num_dispositivos) return;
     
@@ -164,8 +189,9 @@ function calcularPaso1_3() {
                 <strong>igual o mayor a ${E_autosuficiencia.toFixed(0)} Wh</strong>.
             </p>
             <p style="margin: 10px 0; font-size: 0.9em; color: #0c5460;">
-                Esto garantiza que el sistema tenga suficiente energía almacenada para alimentar simultáneamente 
-                ${num_dispositivos} vehículo(s) eléctrico(s) durante ${estado.t_sesion.toFixed(2)} hora(s).
+                Esta es la energía teórica para alimentar simultáneamente
+                ${num_dispositivos} vehículo(s) durante ${estado.t_sesion.toFixed(2)} hora(s).
+                Para seleccionar el banco comercial, considera además su capacidad utilizable y las pérdidas del sistema.
             </p>
         </div>
     `;
@@ -185,7 +211,7 @@ function registrarHSP() {
     }
     
     const HSP_input = document.getElementById('HSP').value;
-    const HSP = validarNumero(HSP_input, 'Horas Solar Pico');
+    const HSP = validarNumero(HSP_input, 'Horas solares pico', 'HSP');
     
     if (!HSP) return;
     
@@ -230,7 +256,7 @@ function autoCalcularPaso2_3() {
         return;
     }
     
-    const P_panel = validarNumero(P_panel_input, 'Potencia nominal del panel');
+    const P_panel = validarNumero(P_panel_input, 'Potencia nominal del panel', 'P_panel');
     const V_nominal = parseFloat(V_nominal_input);
     
     if (!P_panel) return;
@@ -329,9 +355,9 @@ function generarSelectorOpciones() {
     const descripcion = `
         <div class="descripcion-opciones">
             <p>
-                <strong>Todas las opciones son válidas</strong> desde el punto de vista de generación de energía. 
-                La elección depende de tus preferencias de voltaje y corriente del arreglo. Según la opción que selecciones, 
-                deberás considerar cuidados específicos al elegir el inversor:
+                <strong>Estas opciones son configuraciones orientativas.</strong>
+                Las tensiones y corrientes se estiman con la categoría nominal seleccionada.
+                Antes de elegir equipos, verifica los valores reales de la ficha del panel y los límites del controlador o inversor:
             </p>
             <ul style="margin-left: 20px; margin-top: 10px;">
                 <li>Mayor voltaje en serie → requiere inversor con entrada de voltaje más alta</li>
